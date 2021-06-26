@@ -4,8 +4,10 @@ import com.sun.org.apache.xpath.internal.operations.Or;
 import org.volgatech.javacore.streams.model.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -50,7 +52,9 @@ class OrderStats {
                         Function.identity())
                 );
 
-        Map<Integer, List<String>> test2 =  orders.map(order -> order.getOrderItems().size())
+        */
+
+        /*Map<Integer, List<String>> test2 =  orders.map(order -> order.getOrderItems().size())
                 .distinct()
                 .collect(Collectors.toMap(
                         Function.identity(),
@@ -58,11 +62,12 @@ class OrderStats {
                     )
                 );*/
 
+        List<Order> orderList = orders.collect(Collectors.toList());
         return orders.map(order -> order.getOrderItems().size())
                 .distinct()
                 .collect(Collectors.toMap(
                         Function.identity(),
-                        countItems -> getOrderByCountItems(orders, countItems))
+                        countItems -> getOrderByCountItems(orderList.stream(), countItems))
                 );
     }
 
@@ -146,7 +151,7 @@ class OrderStats {
      * Product1(price = 100$, quantity = 2),
      * Product2(price = 160$, quantity = 1)
      * ]
-     * тогда средняя стоимость продуктов будет 120$ ((100 * 2 + 160 * 1) / 3)
+     * тогда средняя стоимость продуктов будет 120$ = ((100 * 2 + 160 * 1) / 3)
      * <p>
      * Так как цена продукта представлена как BigDecimal, необходимо использовать кастомный коллектор AveragingBigDecimalCollector
      *
@@ -155,10 +160,28 @@ class OrderStats {
      * @return average price of the product, ordered with the provided card
      */
     static BigDecimal averageProductPriceForCreditCard(final Stream<Customer> customers, final String cardNumber) {
-        /*customers.flatMap(customer -> customer.getOrders().stream())
-                .map(Order::getPaymentInfo)
-                .filter(paymentInfo -> paymentInfo.getCardNumber().equals(cardNumber))
-                .collect(Collectors.toList());*/
-        return null;
+        List<BigDecimal> allPrices = customers.flatMap(customer -> customer.getOrders().stream())
+                .filter(order -> order.getPaymentInfo().getCardNumber().equals(cardNumber))
+                .flatMap(order -> order.getOrderItems().stream())
+                .collect(Collectors.toMap(
+                        orderItem -> orderItem.getProduct().getPrice(),
+                        OrderItem::getQuantity,
+                        Integer::sum
+                ))
+                .entrySet().stream()
+                .map(productIntegerEntry -> BigDecimal.valueOf(productIntegerEntry.getValue()).multiply(productIntegerEntry.getKey()))
+                .collect(Collectors.toList());
+        return average(allPrices, RoundingMode.FLOOR);
+    }
+
+    static BigDecimal average(List<BigDecimal> bigDecimals, RoundingMode roundingMode) {
+        BigDecimal sum = bigDecimals.stream()
+                .map(Objects::requireNonNull)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        try {
+            return sum.divide(new BigDecimal(bigDecimals.size()), roundingMode);
+        } catch (ArithmeticException e) {
+            return BigDecimal.ZERO;
+        }
     }
 }
