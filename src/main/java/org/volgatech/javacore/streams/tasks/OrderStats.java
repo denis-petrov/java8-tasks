@@ -45,36 +45,27 @@ class OrderStats {
      * @return map, where order size values mapped to lists of orders
      */
     static Map<Integer, List<Order>> orderSizes(final Stream<Order> orders) {
-        /*Map<Integer, Integer> test =  orders.map(order -> order.getOrderItems().size())
-                .distinct()
-                .collect(Collectors.toMap(
-                        Function.identity(),
-                        Function.identity())
-                );
+        /* вот тут пример но не рабоает по аналогии https://mkyong.com/java8/java-8-collectors-groupingby-and-mapping-example/ */
+        /*List<Item> items = Arrays.asList(
+                new Item("apple", 10, new BigDecimal("9.99")),
+                new Item("banana", 20, new BigDecimal("19.99")),
+                new Item("orang", 10, new BigDecimal("29.99")),
+                new Item("watermelon", 10, new BigDecimal("29.99")),
+                new Item("papaya", 20, new BigDecimal("9.99")),
+                new Item("apple", 10, new BigDecimal("9.99")),
+                new Item("banana", 10, new BigDecimal("19.99")),
+                new Item("apple", 20, new BigDecimal("9.99"))
+        );
 
-        */
+        //group by price
+        Map<BigDecimal, List<Item>> groupByPriceMap =
+                items.stream().collect(Collectors.groupingBy(Item::getPrice));*/
 
-        /*Map<Integer, List<String>> test2 =  orders.map(order -> order.getOrderItems().size())
-                .distinct()
-                .collect(Collectors.toMap(
-                        Function.identity(),
-                        integer -> new LinkedList<>()
-                    )
-                );*/
-
-        List<Order> orderList = orders.collect(Collectors.toList());
-        return orders.map(order -> order.getOrderItems().size())
-                .distinct()
-                .collect(Collectors.toMap(
-                        Function.identity(),
-                        countItems -> getOrderByCountItems(orderList.stream(), countItems))
-                );
+        Map<Integer, List<Order>> test = orders.collect(Collectors.groupingBy(order -> order.getOrderItems().size()));
+        return test;
+        // return orders.collect(Collectors.groupingBy(order -> order.getOrderItems().size()));
     }
 
-    private static List<Order> getOrderByCountItems(Stream<Order> orders, Integer countItems) {
-        return orders.filter(order -> order.getOrderItems().size() == countItems)
-                .collect(Collectors.toList());
-    }
 
     /**
      * Task 3 (⚫⚫⚫⚪⚪)
