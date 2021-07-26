@@ -13,6 +13,7 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
@@ -59,8 +60,8 @@ public class OrderStatsTest {
     public void task2Test1() {
         final Stream<Order> orders = orderStream;
         final Map<Integer, List<Order>> orderSizes = OrderStats.orderSizes(orders);
-        assertEquals("There are 3 orders with size = 15 in this stream",3, orderSizes.get(15).size());
-        assertEquals("Order #108233 has size = 21", 108233, (long)orderSizes.get(21).get(0).getOrderId());
+        assertEquals("There are 2 orders with size = 1 in this stream",2, orderSizes.get(1).size());
+        assertEquals("Order #108233 has size = 8", 108233, (long)orderSizes.get(8).get(0).getOrderId());
         assertEquals("There is no orders with size = 3 in this stream", null, orderSizes.get(0));
     }
 
@@ -81,7 +82,7 @@ public class OrderStatsTest {
     public void task3Test2() {
         final Stream<Order> orders = orderStream.limit(4).skip(1);
         final boolean hasColorProduct = OrderStats.hasColorProduct(orders, Product.Color.BLUE);
-        assertEquals("One of the orders in this stream does not contains any blue products", false, hasColorProduct);
+        assertEquals("One of the orders in this stream does contains any blue products", true, hasColorProduct);
     }
 
     @Test
